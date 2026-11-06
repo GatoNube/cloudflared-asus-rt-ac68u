@@ -29,15 +29,15 @@
 | 路由器 | ASUS RT-AC68U |
 | 固件 | 3.0.0.4_386.14_2(梅林-KoolShare)|
 | 架构 | armv7l(32位)|
-| 内网 IP | 192.168.1.1 |
-| Web 后台 | http://192.168.1.1:80 / https 8443 |
+| 内网 IP | 192.168.X.1 |
+| Web 后台 | http://192.168.X.1:80 / https 8443 |
 | 内存 | 256MB |
 
 ### 隧道
 | 项 | 值(示例)|
 |----|---------|
 | 访问域名 | router.你的域名.com |
-| 目标服务 | 192.168.1.1:80(HTTP)|
+| 目标服务 | 192.168.X.1:80(HTTP)|
 | cloudflared 路径 | /jffs/cloudflared |
 | token 文件 | /jffs/cloudflared-token |
 | 日志 | /jffs/cloudflared.log |
@@ -47,7 +47,7 @@
 |----|----|
 | 账号 | 路由器登录账号 |
 | 密码 | 路由器登录密码 |
-| 命令 | ssh 账号@192.168.1.1 |
+| 命令 | ssh 账号@192.168.X.1 |
 
 ---
 
@@ -55,7 +55,7 @@
 
 ```sh
 # SSH 登录设备
-ssh 你的账号@192.168.1.1
+ssh 你的账号@192.168.X.1
 
 # 看 cloudflared 状态
 pidof cloudflared
