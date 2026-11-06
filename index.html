@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cloudflare Tunnel 内网穿透 · 完整资料集</title>
+<style>
+:root{--fg:#1d2330;--dim:#6b7488;--line:#e6e9f0;--bg:#fff;--side:#f7f8fb;--accent:#f6821f;--codebg:#0f1622;--codefg:#e6edf6;}
+*{box-sizing:border-box}
+body{margin:0;font:15.5px/1.75 -apple-system,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--fg);background:var(--bg)}
+.layout{display:flex;min-height:100vh}
+aside{width:288px;flex:0 0 288px;background:var(--side);border-right:1px solid var(--line);position:sticky;top:0;height:100vh;overflow:auto;padding:24px 18px}
+main{flex:1;max-width:900px;margin:0 auto;padding:36px 48px 90px}
+header.hero{padding:26px 0 16px;border-bottom:2px solid var(--line);margin-bottom:10px}
+header.hero h1{font-size:25px;margin:0 0 6px;line-height:1.35}
+header.hero .sub{color:var(--dim);font-size:14px;max-width:640px}
+.badge{display:inline-block;font-size:12px;color:var(--accent);border:1px solid var(--accent);border-radius:20px;padding:2px 10px;margin-top:10px}
+.navtitle{font-size:12px;letter-spacing:.08em;color:var(--dim);text-transform:uppercase;margin-bottom:12px}
+.toc{list-style:none;margin:0;padding:0;font-size:14px}
+.toc>li{margin:8px 0}
+.toc a{color:var(--fg);text-decoration:none}
+.toc a:hover{color:var(--accent)}
+.toc .doctop{font-weight:600}
+.toc ul{list-style:none;margin:5px 0 5px 12px;padding:0;font-size:13px}
+.toc ul a{color:var(--dim)}
+.doc{margin-bottom:46px}
+h1,h2,h3,h4{line-height:1.4;scroll-margin-top:18px}
+h2{border-left:4px solid var(--accent);padding-left:12px;margin-top:38px;font-size:21px}
+h3{font-size:17px;margin-top:24px;color:#2a3344}
+h4{font-size:15px;margin-top:18px;color:var(--dim)}
+p{margin:12px 0}
+code{background:#f1f3f7;padding:1.5px 6px;border-radius:5px;font:13px/1.5 "SFMono-Regular",Consolas,Menlo,monospace;color:#b5371f}
+pre{background:var(--codebg);color:var(--codefg);padding:16px 18px;border-radius:10px;overflow:auto;font:13px/1.55 "SFMono-Regular",Consolas,Menlo,monospace;white-space:pre}
+pre code{background:none;color:inherit;padding:0}
+table{border-collapse:collapse;width:100%;margin:16px 0;font-size:14px}
+th,td{border:1px solid var(--line);padding:8px 11px;text-align:left;vertical-align:top}
+th{background:#f4f3ef;font-weight:600;white-space:nowrap}
+blockquote{border-left:4px solid var(--accent);background:#fff7ee;padding:10px 16px;border-radius:0 8px 8px 0;margin:14px 0;color:#5a4632}
+blockquote p{margin:6px 0}
+blockquote a{color:#b5651d}
+hr{border:none;border-top:1px solid var(--line);margin:24px 0}
+a{color:#1a73c7}
+@media(max-width:900px){aside{display:none}main{padding:24px 18px}}
+@media print{body{font-size:12pt}aside{display:none}main{max-width:none;margin:0;padding:0}pre,blockquote{page-break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside>
+<div class="navtitle">目录</div><ul class="toc"><li><a href="#doc0" class="doctop">总览 / README</a><ul><li><a href="#doc0-h2">目录</a></li><li><a href="#doc0-h3">关键信息速查(示例)</a></li><li><a href="#doc0-h7">常用命令速查</a></li><li><a href="#doc0-h8">文件清单(脚本/代码)</a></li><li><a href="#doc0-h9">使用流程(从零到能远程访问)</a></li><li><a href="#doc0-h10">遇到问题的思路</a></li><li><a href="#doc0-h11">许可</a></li></ul></li><li><a href="#doc1" class="doctop">01 · 安装 Cloudflared</a><ul><li><a href="#doc1-h2">一、方案思路(先理解再动手)</a></li><li><a href="#doc1-h5">二、本设备信息确认</a></li><li><a href="#doc1-h6">三、完整安装步骤(带代码)</a></li><li><a href="#doc1-h15">四、安全加固(必做)</a></li><li><a href="#doc1-h19">五、常用运维命令</a></li><li><a href="#doc1-h20">六、本方案可推广到的设备</a></li></ul></li><li><a href="#doc2" class="doctop">02 · Access 登录保护</a><ul><li><a href="#doc2-h2">一、为什么必须加 Access</a></li><li><a href="#doc2-h3">二、配置步骤(Web 界面)</a></li><li><a href="#doc2-h8">三、四种&quot;发布类型&quot;怎么选(常见困惑)</a></li><li><a href="#doc2-h9">四、登录方式说明(邮箱验证码)</a></li><li><a href="#doc2-h10">五、完整效果</a></li><li><a href="#doc2-h11">六、可推广到 NAS/其他设备</a></li></ul></li><li><a href="#doc3" class="doctop">03 · 各设备接入思路</a><ul><li><a href="#doc3-h2">一、本质原理</a></li><li><a href="#doc3-h3">二、通用接入五步法(任何设备都适用)</a></li><li><a href="#doc3-h4">三、分设备详解</a></li><li><a href="#doc3-h12">四、开机自启的几种机制(按设备类型选)</a></li><li><a href="#doc3-h15">五、安全最佳实践(每台设备都套用)</a></li><li><a href="#doc3-h16">六、故障排查速查</a></li><li><a href="#doc3-h17">七、一个账号管多台设备</a></li></ul></li><li><a href="#doc4" class="doctop">04 · API 自动配置 Access</a><ul><li><a href="#doc4-h2">一、准备:拿到 API 凭据</a></li><li><a href="#doc4-h6">二、核心 API 概念</a></li><li><a href="#doc4-h7">三、代码一:创建 Access 应用</a></li><li><a href="#doc4-h8">四、代码二:创建 Access 策略(允许你的邮箱)</a></li><li><a href="#doc4-h9">五、代码三:查询已配置的应用(验证)</a></li><li><a href="#doc4-h10">六、完整一键脚本(创建 App + Policy)</a></li><li><a href="#doc4-h11">七、批量给多台设备加保护</a></li><li><a href="#doc4-h12">八、删除/清理(可选)</a></li><li><a href="#doc4-h13">九、常用 API 参考</a></li></ul></li><li><a href="#doc9" class="doctop">代码 / 脚本附录</a></li></ul>
+</aside>
+<main>
+<header class="hero">
+<h1>Cloudflare Tunnel 内网穿透 · 完整资料集</h1>
+<div class="sub">没有公网 IP，也能从外网安全访问家里的路由器、NAS 等任意联网设备。方案：Cloudflare Tunnel（cloudflared）内网穿透 + Access 登录保护。</div>
+<span class="badge">MIT License · 可自由使用 / 修改 / 分发</span>
+</header>
+<section id="doc0" class="doc">
+<h1 id="doc0-h1">Cloudflare Tunnel 内网穿透 —— 完整资料集</h1>
+<blockquote><p>目标:没有公网 IP,也能从外网安全访问家里的路由器、NAS 等任何联网设备。</p>
+<p>方案:Cloudflare Tunnel(cloudflared)内网穿透。</p>
+<p>提示:文中示例域名、IP、账号均为占位,请替换为你自己的实际值。</p></blockquote>
+<hr>
+<h2 id="doc0-h2">目录</h2>
+<table><thead><tr><th>文档</th><th>内容</th></tr></thead><tbody><tr><td>01-在ASUS-RT-AC68U上安装Cloudflared.md</td><td>华硕路由器安装 cloudflared 完整步骤(示例)</td></tr><tr><td>02-Cloudflare-Access登录保护.md</td><td>给发布网址加登录保护(仅自己可访问)</td></tr><tr><td>03-各设备接入思路.md</td><td>NAS/路由器/树莓派/Windows 等通用接入方法论</td></tr><tr><td>04-Cloudflare-API自动配置Access.md</td><td>用 API/脚本(非 GUI)自动加 Access 保护</td></tr><tr><td>代码/</td><td>可直接使用的脚本(安装、自启、重启、Access 配置)</td></tr></tbody></table>
+<hr>
+<h2 id="doc0-h3">关键信息速查(示例)</h2>
+<h3 id="doc0-h4">设备</h3>
+<table><thead><tr><th>项</th><th>值(示例)</th></tr></thead><tbody><tr><td>路由器</td><td>ASUS RT-AC68U</td></tr><tr><td>固件</td><td>3.0.0.4_386.14_2(梅林-KoolShare)</td></tr><tr><td>架构</td><td>armv7l(32位)</td></tr><tr><td>内网 IP</td><td>192.168.1.1</td></tr><tr><td>Web 后台</td><td>http://192.168.1.1:80 / https 8443</td></tr><tr><td>内存</td><td>256MB</td></tr></tbody></table>
+<h3 id="doc0-h5">隧道</h3>
+<table><thead><tr><th>项</th><th>值(示例)</th></tr></thead><tbody><tr><td>访问域名</td><td>router.你的域名.com</td></tr><tr><td>目标服务</td><td>192.168.1.1:80(HTTP)</td></tr><tr><td>cloudflared 路径</td><td>/jffs/cloudflared</td></tr><tr><td>token 文件</td><td>/jffs/cloudflared-token</td></tr><tr><td>日志</td><td>/jffs/cloudflared.log</td></tr></tbody></table>
+<h3 id="doc0-h6">SSH 登录</h3>
+<table><thead><tr><th>项</th><th>值</th></tr></thead><tbody><tr><td>账号</td><td>路由器登录账号</td></tr><tr><td>密码</td><td>路由器登录密码</td></tr><tr><td>命令</td><td>ssh 账号@192.168.1.1</td></tr></tbody></table>
+<hr>
+<h2 id="doc0-h7">常用命令速查</h2>
+<pre><code># SSH 登录设备
+ssh 你的账号@192.168.1.1
+
+# 看 cloudflared 状态
+pidof cloudflared
+
+# 看连接日志
+tail -20 /jffs/cloudflared.log
+
+# 重启 cloudflared(用整理的脚本)
+sh /jffs/cloudflared-restart.sh</code></pre>
+<hr>
+<h2 id="doc0-h8">文件清单(脚本/代码)</h2>
+<table><thead><tr><th>文件</th><th>用途</th></tr></thead><tbody><tr><td>install-cloudflared.sh</td><td>一键下载安装 cloudflared + 写 token + 测试</td></tr><tr><td>services-start.sh</td><td>开机自启启动块(追加到 /jffs/scripts/services-start)</td></tr><tr><td>cloudflared-restart.sh</td><td>启停/重启/状态 运维脚本</td></tr><tr><td>setup-access.sh</td><td>用 Cloudflare API 自动创建 Access 应用和策略</td></tr></tbody></table>
+<hr>
+<h2 id="doc0-h9">使用流程(从零到能远程访问)</h2>
+<blockquote><p>整套方案用<strong>免费域名 + 免费服务,0 成本</strong>。免费域名可到两个渠道找一个<strong>能托管到 Cloudflare</strong> 的:① 免费顶级域名注册商(NS 改到 CF);② 免费二级域名服务。详见 01 篇"前置条件"。</p></blockquote>
+<ol>
+<li>确认设备架构 → 下载对应 cloudflared(第 1 篇)</li>
+<li>Cloudflare 后台建 Tunnel → 拿 token → 写入设备</li>
+<li>开机自启(第 1 篇 / 代码)</li>
+<li>Cloudflare 后台加公共主机名 → 指向设备内网地址</li>
+<li>加 Cloudflare Access 保护(第 2 篇)</li>
+<li>从外网访问 https://你的域名 完成</li>
+</ol>
+<hr>
+<h2 id="doc0-h10">遇到问题的思路</h2>
+<ol>
+<li>先看日志:<code>tail -20 /jffs/cloudflared.log</code></li>
+<li>对照第 3 篇"故障排查速查"</li>
+<li>确认 Cloudflare 后台隧道状态 Healthy</li>
+<li>确认 Access Policy 已生效</li>
+</ol>
+<hr>
+<h2 id="doc0-h11">许可</h2>
+<p>本项目采用 [MIT License](LICENSE) 授权 —— 可自由使用、修改、分发,包括商业用途,只需保留版权声明。</p>
+<blockquote><p><strong>免责提醒:</strong> 脚本会修改路由器的系统文件(<code>/jffs</code>)与开机自启脚本(<code>/jffs/scripts/services-start</code>),</p>
+<p>动手前请先读懂每一步在做什么,并确认自己有能力恢复(备份 <code>/jffs</code>、确认救援模式可用)。</p>
+<p>软件按「原样」提供,不附带任何担保,使用风险自负。</p></blockquote>
+</section>
+<section id="doc1" class="doc">
+<h1 id="doc1-h1">在 ASUS RT-AC68U 上安装 Cloudflared(Cloudflare Tunnel)</h1>
+<blockquote><p>目的:让没有公网 IP 的家庭路由器/内网设备,通过 Cloudflare 隧道从外网安全访问。</p>
+<p>本文以 <strong>ASUS RT-AC68U(华硕路由器)</strong> 为例,思路可推广到 NAS、软路由、树莓派等任何能装 Linux 二进制的联网设备。</p>
+<p>提示:文中示例域名、IP、账号均为占位,请替换为你自己的实际值。</p></blockquote>
+<hr>
+<h2 id="doc1-h2">一、方案思路(先理解再动手)</h2>
+<h3 id="doc1-h3">1. 为什么用 Cloudflare Tunnel?</h3>
+<ul>
+<li>家里宽带<strong>没有公网 IP</strong> → 无法直接做端口映射从外网访问</li>
+<li>Cloudflare Tunnel 的客户端 <strong>cloudflared</strong> 主动向外连到 Cloudflare 边缘节点,<strong>不需要开任何入站端口</strong></li>
+<li>别人从外网通过你的域名访问 → Cloudflare 边缘 → 隧道 → 你的内网设备</li>
+</ul>
+<pre><code>外网设备 ──&gt; 你的域名(router.你的域名.com)
+                    │
+              Cloudflare 边缘节点
+                    │  (出站隧道, 由 cloudflared 主动建立)
+              你的路由器/NAS(内网 192.168.1.1)</code></pre>
+<h3 id="doc1-h4">2. 前置条件</h3>
+<table><thead><tr><th>条件</th><th>说明</th></tr></thead><tbody><tr><td>Cloudflare 账户</td><td>https://dash.cloudflare.com 免费注册</td></tr><tr><td>一个托管在 Cloudflare 的域名</td><td>可自行寻找能托管到 Cloudflare 的<strong>免费域名</strong>(见下)</td></tr><tr><td>目标设备可联网</td><td>路由器/NAS 能正常上网</td></tr><tr><td>能进入设备的 shell</td><td>路由器开 SSH / NAS 有终端</td></tr></tbody></table>
+<blockquote><p><strong>免费域名怎么来(0 成本方案):</strong></p>
+<p>整套方案用<strong>免费域名 + 免费服务</strong>,无需花钱。可到以下渠道找一个<strong>能托管到 Cloudflare</strong> 的免费域名:</p>
+<ul>
+<li><strong>渠道一</strong>:提供免费顶级域名/免费域名的注册商(注册后可把域名的 DNS(NS)改到 Cloudflare 托管)。</li>
+<li><strong>渠道二</strong>:提供免费二级域名/子域名的服务(这类域名通常本身就支持改到 Cloudflare 或可直接在 Cloudflare 用)。</li>
+</ul>
+<p>选域名的要点:<strong>确认它能把权威 DNS 交给 Cloudflare 托管</strong>(即能把域名 NS 记录指到 Cloudflare),这样才能用 Cloudflare Tunnel 发布你的设备。</p></blockquote>
+<hr>
+<h2 id="doc1-h5">二、本设备信息确认</h2>
+<p>在动手前,先确认目标设备的型号、固件、架构,这决定下载哪个 cloudflared 二进制。</p>
+<p><strong>RT-AC68U 示例信息:</strong></p>
+<ul>
+<li>型号:<code>RT-AC68U</code></li>
+<li>固件:<code>3.0.0.4_386.14_2</code>(ASUSWRT-Merlin-KoolShare)</li>
+<li>内核:<code>2.6.36.4brcmarm</code>(32 位 ARM)</li>
+<li>架构:<code>armv7l</code>(32 位)</li>
+<li>内存:256MB</li>
+<li>登录:Web 和 SSH 都用<strong>路由器登录账号 + 密码</strong></li>
+</ul>
+<blockquote><p>判断架构:登录设备后执行 <code>uname -m</code>。<code>armv7l</code> 用 <code>cloudflared-linux-arm</code>;<code>aarch64</code> 用 <code>cloudflared-linux-arm64</code>;<code>x86_64</code> 用 <code>cloudflared-linux-amd64</code>。</p></blockquote>
+<hr>
+<h2 id="doc1-h6">三、完整安装步骤(带代码)</h2>
+<h3 id="doc1-h7">第 1 步:开启 SSH 并登录设备</h3>
+<p>RT-AC68U 需先开启 SSH:</p>
+<ul>
+<li>后台 → <strong>Administration → System → Service</strong> → Enable SSH 选 <strong>LAN only</strong></li>
+<li>用<strong>路由器登录账号 + 密码</strong> SSH 登录即可(默认就是后台那个账号密码)</li>
+</ul>
+<p>SSH 登录(用系统自带 OpenSSH 客户端):</p>
+<pre><code>ssh 你的账号@192.168.1.1
+# 回车后输入路由器登录密码</code></pre>
+<h3 id="doc1-h8">第 2 步:确认 JFFS / 存储分区可写</h3>
+<p>cloudflared 需要持久化存放(否则重启丢失)。RT-AC68U 用 JFFS 分区:</p>
+<pre><code>df -h /jffs            # 查看剩余空间
+# 示例:/jffs 总容量约 62.8M,cloudflared 约 37M,安装前请确保剩余空间足够</code></pre>
+<blockquote><p>若空间不够,可插 USB 盘挂载到 <code>/tmp/mnt/xxx</code> 再存放。</p></blockquote>
+<h3 id="doc1-h9">第 3 步:下载 cloudflared 二进制</h3>
+<p>到设备上,用 wget/curl 下载对应架构的二进制并放到持久目录:</p>
+<pre><code>cd /jffs
+wget -O cloudflared https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-arm
+chmod +x cloudflared
+./cloudflared --version
+# 输出示例: cloudflared version 2026.10.7 (built 2026-10-30)</code></pre>
+<h3 id="doc1-h10">第 4 步:在 Cloudflare 创建 Tunnel 并获取 Token</h3>
+<ol>
+<li>登录 <strong>https://one.dash.cloudflare.com</strong></li>
+<li><strong>Networks → Tunnels → Create a tunnel</strong> → 选 <strong>Cloudflared</strong> → 命名(如 <code>router-access</code>)→ <strong>Save tunnel</strong></li>
+<li>在显示安装命令的页面,<strong>复制那个 <code>eyJhIjoi...</code> 开头的完整 token</strong>(很长的字符串)</li>
+</ol>
+<h3 id="doc1-h11">第 5 步:把 Token 写入设备</h3>
+<p>用 base64 传输避免转义问题(电脑上执行):</p>
+<pre><code># 电脑上:把 token 编码
+echo -n &#x27;eyJhIjoi...你的token...&#x27; | base64
+# 把输出的 base64 串,到路由器上解码写文件
+echo &#x27;这里粘贴base64串&#x27; | base64 -d &gt; /jffs/cloudflared-token</code></pre>
+<p>验证写入成功:</p>
+<pre><code>wc -c /jffs/cloudflared-token     # 应有内容,不是 0
+cat /jffs/cloudflared-token       # 应看到 eyJhIjoi... 开头</code></pre>
+<h3 id="doc1-h12">第 6 步:手动启动 cloudflared 并测试连接</h3>
+<pre><code>killall cloudflared 2&gt;/dev/null
+/jffs/cloudflared tunnel run --token &quot;$(cat /jffs/cloudflared-token)&quot; &gt; /jffs/cloudflared.log 2&gt;&amp;1 &amp;
+sleep 15
+cat /jffs/cloudflared.log</code></pre>
+<p><strong>成功标志</strong>——日志出现(关键):</p>
+<pre><code>INF Starting tunnel tunnelID=xxxx-xxxx
+INF Registered tunnel connection connIndex=0 ... location=lax01 protocol=quic
+INF Registered tunnel connection connIndex=1 ... location=lax11 protocol=quic</code></pre>
+<p>看到 <code>Registered tunnel connection</code> 即隧道已连上。</p>
+<p><strong>失败排查</strong>:</p>
+<table><thead><tr><th>日志报错</th><th>含义</th><th>解决</th></tr></thead><tbody><tr><td><code>Failed to get tunnel</code></td><td>Cloudflare 找不到该隧道</td><td>token 有误,或隧道没在后台保存成功,重新创建</td></tr><tr><td><code>ERR Register tunnel error</code></td><td>注册失败</td><td>检查 token、网络</td></tr><tr><td><code>Error reading SSH protocol banner</code></td><td>SSH 被限流</td><td>等一会再试,别频繁尝试</td></tr></tbody></table>
+<h3 id="doc1-h13">第 7 步:配置开机自启</h3>
+<p>把启动逻辑加入启动脚本。RT-AC68U 梅林固件在 <code>/jffs/scripts/services-start</code>:</p>
+<pre><code># /jffs/scripts/services-start (末尾追加)
+# Start cloudflared (Cloudflare Tunnel)
+if [ -f /jffs/cloudflared-token ] &amp;&amp; [ -s /jffs/cloudflared-token ]; then
+    if ! pidof cloudflared &gt; /dev/null 2&gt;&amp;1; then
+        TOKEN=$(cat /jffs/cloudflared-token)
+        /jffs/cloudflared tunnel run --token &quot;$TOKEN&quot; &gt;&gt; /jffs/cloudflared.log 2&gt;&amp;1 &amp;
+        echo &quot;started cloudflared pid=$!&quot; &gt;&gt; /jffs/cloudflared.log
+    fi
+fi</code></pre>
+<p>设为可执行:</p>
+<pre><code>chmod +x /jffs/scripts/services-start</code></pre>
+<h3 id="doc1-h14">第 8 步:在 Cloudflare 后台添加公共主机名(把设备发布出去)</h3>
+<ol>
+<li><strong>Networks → Tunnels</strong> → 点你的隧道 → <strong>Public Hostname</strong> 标签</li>
+<li><strong>Add a public hostname</strong>:</li>
+</ol>
+<ul>
+<li><strong>Subdomain</strong>:<code>router</code></li>
+<li><strong>Domain</strong>:<code>你的域名</code>(如 example.com)</li>
+<li><strong>Type</strong>:<code>HTTP</code></li>
+<li><strong>URL</strong>:<code>192.168.1.1:80</code>(设备的内网地址和端口)</li>
+</ul>
+<ol>
+<li><strong>Save</strong></li>
+</ol>
+<p>完成后,从外网访问 <code>https://router.你的域名.com</code> 即可进入设备后台。</p>
+<hr>
+<h2 id="doc1-h15">四、安全加固(必做)</h2>
+<p><strong>问题</strong>:上面发布的网址,任何人知道地址都能访问。必须加保护。</p>
+<h3 id="doc1-h16">1. 启用 Cloudflare Access 登录保护</h3>
+<p>参考第 2 篇(<code>02-Cloudflare-Access登录保护.md</code>)。</p>
+<h3 id="doc1-h17">2. 设备自身密码改强</h3>
+<p>不要用默认弱密码(如 admin/admin、admin/123456)。</p>
+<h3 id="doc1-h18">3. 只用 HTTPS</h3>
+<p>Cloudflare 隧道默认给 <code>http://...</code> 加一层 Cloudflare 的 HTTPS,访问时可用 <code>https://router.你的域名.com</code>。</p>
+<hr>
+<h2 id="doc1-h19">五、常用运维命令</h2>
+<pre><code># 查看 cloudflared 是否运行
+pidof cloudflared
+
+# 查看连接日志
+tail -20 /jffs/cloudflared.log
+
+# 停止
+killall cloudflared
+
+# 重启
+killall cloudflared; sleep 1; /jffs/cloudflared tunnel run --token &quot;$(cat /jffs/cloudflared-token)&quot; &gt; /jffs/cloudflared.log 2&gt;&amp;1 &amp;</code></pre>
+<hr>
+<h2 id="doc1-h20">六、本方案可推广到的设备</h2>
+<table><thead><tr><th>设备</th><th>目标</th><th>说明</th></tr></thead><tbody><tr><td><strong>NAS</strong>(群晖/威联通)</td><td>远程访问 NAS 管理后台/文件</td><td>架构多为 x86 或 arm64,下载对应二进制,放共享盘并加开机自启</td></tr><tr><td><strong>软路由/OpenWrt</strong></td><td>远程管理</td><td>OpenWrt 可用 <code>opkg install cloudflared</code></td></tr><tr><td><strong>树莓派</strong></td><td>远程访问跑的服务</td><td>armv7/arm64,放系统盘,加 systemd 服务</td></tr><tr><td><strong>普通 Linux 服务器</strong></td><td>暴露内网服务</td><td>直接 systemd 托管 cloudflared</td></tr></tbody></table>
+<blockquote><p>核心思路一致:<strong>下载对应架构的 cloudflared → 配 token → 开机自启 → Cloudflare 后台加公共主机名 → 加 Access 保护</strong>。</p></blockquote>
+</section>
+<section id="doc2" class="doc">
+<h1 id="doc2-h1">给 router.你的域名.com 加 Cloudflare Access 登录保护</h1>
+<blockquote><p>提示:文中域名、IP 均为占位,请替换为你自己的实际值。</p></blockquote>
+<blockquote><p>目的:隧道发布出去的网址,任何人都能打开。加 Access 后,只有通过你验证的人才能访问。</p>
+<p>适用:路由器后台、NAS 管理页、任何通过 cloudflared 发布的 HTTP 服务。</p></blockquote>
+<hr>
+<h2 id="doc2-h2">一、为什么必须加 Access</h2>
+<p>默认发布后,<code>https://router.你的域名.com</code> 全网可访问,若设备密码弱(如 admin/123456),极易被暴力破解。Access 在设备前再加一层"登录墙"。</p>
+<h2 id="doc2-h3">二、配置步骤(Web 界面)</h2>
+<h3 id="doc2-h4">第 1 步:进入 Access 页面</h3>
+<ol>
+<li>登录 https://one.dash.cloudflare.com</li>
+<li>左侧 <strong>Access → Applications</strong>(若没有 Access,确认进入的是 Zero Trust 工作区)</li>
+</ol>
+<h3 id="doc2-h5">第 2 步:添加自托管应用</h3>
+<ol>
+<li>点 <strong>Add an application</strong></li>
+<li>选 <strong>Self-hosted</strong>(自托管)类型 → <strong>Next</strong></li>
+<li>配置:</li>
+</ol>
+<ul>
+<li><strong>Application name</strong>: <code>router-access</code></li>
+<li><strong>Application domain</strong>: <code>router.你的域名.com</code></li>
+<li><strong>Session duration</strong>: 24 hours(多久免登录)</li>
+<li>其他默认 → <strong>Next</strong></li>
+</ul>
+<h3 id="doc2-h6">第 3 步:配置 Access Policy(谁能访问)</h3>
+<p>在 Policy 配置区:</p>
+<ol>
+<li><strong>Policy name</strong>: <code>only-me</code></li>
+<li><strong>Action</strong>: <strong>Allow</strong></li>
+<li><strong>Configure rules / Include</strong> 添加:</li>
+</ol>
+<ul>
+<li>选择 <strong>Emails</strong> 项</li>
+<li>填入<strong>你自己的邮箱</strong></li>
+</ul>
+<ol>
+<li><strong>Next → Save</strong></li>
+</ol>
+<h3 id="doc2-h7">第 4 步:生效并测试</h3>
+<p>保存后等 30~60 秒。重新访问 <code>https://router.你的域名.com</code>:</p>
+<ul>
+<li>先弹 Cloudflare 验证页 → 输入邮箱 → 收一次性验证码 → 通过后才进设备</li>
+<li>其他邮箱会被拦截</li>
+</ul>
+<hr>
+<h2 id="doc2-h8">三、四种"发布类型"怎么选(常见困惑)</h2>
+<p>创建应用时看到的类型:</p>
+<table><thead><tr><th>选项</th><th>用途</th><th>需要吗</th></tr></thead><tbody><tr><td><strong>已发布的应用程序 (Public Hostname)</strong></td><td>发布成公网网址,浏览器直接访问</td><td>是(路由/NAS 网页后台)</td></tr><tr><td><strong>私有主机名 (Private Hostname)</strong></td><td>仅装 WARP 客户端的设备可访问</td><td>可选(更私密但麻烦)</td></tr><tr><td><strong>私有 CIDR</strong></td><td>远程访问整个内网 IP 段</td><td>不需要</td></tr><tr><td><strong>Workers VPC</strong></td><td>Workers 连内网</td><td>不需要</td></tr></tbody></table>
+<h2 id="doc2-h9">四、登录方式说明(邮箱验证码)</h2>
+<p>Access 的邮箱一次性验证码叫 <strong>One-time PIN (OTP)</strong>:</p>
+<ul>
+<li>在 <strong>Access → Settings → Authentication</strong> 确认 OTP 已启用</li>
+<li>Policy 规则里选 <strong>Emails</strong> 或 <strong>One-time PIN</strong>,填你的邮箱</li>
+<li>首次登录会发验证码到该邮箱,之后会话期内免登录</li>
+</ul>
+<hr>
+<h2 id="doc2-h10">五、完整效果</h2>
+<pre><code>外网设备
+   │ 访问 https://router.你的域名.com
+   ▼
+Cloudflare 边缘节点
+   │  Cloudflare Access 验证(邮箱 OTP)
+   ▼ 验证通过
+路由器后台(192.168.1.1:80)</code></pre>
+<p>未通过验证的人:停在验证页,无法进入。</p>
+<h2 id="doc2-h11">六、可推广到 NAS/其他设备</h2>
+<p>给每个发布的设备(路由器、NAS、各种 Web 服务)分别建一个 Access 应用,域名各自指向不同子域名,共用同一套邮箱验证即可。</p>
+</section>
+<section id="doc3" class="doc">
+<h1 id="doc3-h1">用 Cloudflare Tunnel 远程访问 NAS、路由器及任何联网设备(通用思路)</h1>
+<blockquote><p>核心思想:不用公网 IP、不用端口映射,任何能联网且能运行 cloudflared 的设备,都能通过 Cloudflare 隧道从外网访问。</p>
+<p>本文是通用方法论,第 1 篇(安装 Cloudflared)是具体示例。</p></blockquote>
+<hr>
+<h2 id="doc3-h2">一、本质原理</h2>
+<p>Cloudflare Tunnel = 设备上的 cloudflared <strong>主动出站</strong>连到 Cloudflare 边缘,建立一条加密隧道。外网访问时流量走这条隧道进到内网设备。<strong>无需开放任何入站端口,天然穿透 NAT。</strong></p>
+<pre><code>外网 ──&gt; 你的域名 ──&gt; Cloudflare 边缘 ──隧道──&gt; 内网设备(NAS/路由器/PC/摄像头...)</code></pre>
+<h2 id="doc3-h3">二、通用接入五步法(任何设备都适用)</h2>
+<p>无论什么设备,都遵循这 5 步:</p>
+<table><thead><tr><th>步骤</th><th>动作</th><th>关键点</th></tr></thead><tbody><tr><td>1. 确认架构</td><td>登录设备执行 <code>uname -m</code></td><td>决定下哪个 cloudflared 二进制</td></tr><tr><td>2. 下载二进制</td><td>下载对应架构的 cloudflared</td><td>放到持久存储(重启不丢)</td></tr><tr><td>3. 配 Token</td><td>写入 Cloudflare 创建的隧道 token</td><td>存成文件,一行</td></tr><tr><td>4. 开机自启</td><td>加入设备启动机制</td><td>系统 service / 启动脚本 / 定时任务</td></tr><tr><td>5. 发布+保护</td><td>Cloudflare 后台加公共主机名,再套 Access</td><td>域名指向设备内网地址:端口</td></tr></tbody></table>
+<hr>
+<h2 id="doc3-h4">三、分设备详解</h2>
+<h3 id="doc3-h5">1) 华硕路由器(RT-AC68U 等梅林固件)</h3>
+<ul>
+<li>架构:<code>uname -m</code> → <code>armv7l</code> → 用 <code>cloudflared-linux-arm</code></li>
+<li>存放:<code>/jffs/cloudflared</code>(JFFS 持久化)</li>
+<li>自启:<code>/jffs/scripts/services-start</code> 追加启动块</li>
+<li>详见第 1 篇</li>
+</ul>
+<h3 id="doc3-h6">2) NAS(群晖 Synology)</h3>
+<ul>
+<li>架构:多数 x86_64,部分 arm64</li>
+<li>下载:<code>cloudflared-linux-amd64</code>(或 arm64)</li>
+<li>存放:任意共享盘目录</li>
+<li>自启:群晖用 <strong>任务计划程序</strong> 或 <strong>Container Manager(Docker)</strong> 跑 cloudflared</li>
+<li>发布:群晖 Web 后台默认 5000(HTTP)/5001(HTTPS),Service URL 填 <code>192.168.x.x:5000</code></li>
+<li>也可把群晖的 Docker 直接部署 cloudflared 容器</li>
+</ul>
+<h3 id="doc3-h7">3) 威联通 QNAP</h3>
+<ul>
+<li>同群晖思路,web 端口多为 8080</li>
+<li>自启:App Center 或 crontab</li>
+</ul>
+<h3 id="doc3-h8">4) OpenWrt / 软路由</h3>
+<ul>
+<li>有 opkg 包: <code>opkg install cloudflared</code></li>
+<li>自启: <code>/etc/init.d/cloudflared</code>(系统自带服务机制)</li>
+<li>发布:LuCI 后台 80/443</li>
+</ul>
+<h3 id="doc3-h9">5) 树莓派 / 普通 Linux</h3>
+<ul>
+<li>下载对应架构二进制</li>
+<li>自启:写一个 systemd 服务,开机自动跑</li>
+<li>发布:任意 Web 服务端口</li>
+</ul>
+<h3 id="doc3-h10">6) Windows PC / 服务器</h3>
+<ul>
+<li>下载 <code>cloudflared-windows-amd64.exe</code></li>
+<li>注册为服务: <code>cloudflared service install &lt;token&gt;</code></li>
+<li>或用 NSSM 包装</li>
+</ul>
+<h3 id="doc3-h11">7) 摄像头 / 监控 NVR</h3>
+<ul>
+<li>若提供 Web 管理页或 RTSP,可发布 HTTP 页面或走私有主机名给 WARP 用户</li>
+<li>注意:视频流带宽较大,免费隧道流量有限,需评估</li>
+</ul>
+<hr>
+<h2 id="doc3-h12">四、开机自启的几种机制(按设备类型选)</h2>
+<table><thead><tr><th>机制</th><th>适用设备</th><th>示例</th></tr></thead><tbody><tr><td><code>/jffs/scripts/services-start</code></td><td>梅林/华硕固件</td><td>见第 1 篇</td></tr><tr><td>systemd unit</td><td>Linux/树莓派</td><td><code>/etc/systemd/system/cloudflared.service</code></td></tr><tr><td>init.d / rc.local</td><td>传统 Linux/OpenWrt</td><td><code>/etc/init.d/cloudflared</code></td></tr><tr><td>Docker 容器 restart=always</td><td>群晖/QNAP/NAS</td><td>docker run --restart always</td></tr><tr><td>Windows 服务</td><td>Windows</td><td><code>cloudflared service install &lt;token&gt;</code></td></tr><tr><td>计划任务/启动文件夹</td><td>Windows</td><td>或 <code>shell:startup</code> 放启动脚本</td></tr></tbody></table>
+<h3 id="doc3-h13">systemd 示例(树莓派/Linux)</h3>
+<pre><code>[Unit]
+Description=cloudflared tunnel
+After=network.target
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/cloudflared tunnel run --token &quot;$(cat /etc/cloudflared-token)&quot;
+Restart=always
+RestartSec=5
+[Install]
+WantedBy=multi-user.target</code></pre>
+<pre><code>sudo systemctl enable --now cloudflared</code></pre>
+<h3 id="doc3-h14">Docker 示例(NAS)</h3>
+<pre><code>docker run -d --name cloudflared --restart always \
+  cloudflare/cloudflared:latest tunnel run --token $(cat /path/token)</code></pre>
+<hr>
+<h2 id="doc3-h15">五、安全最佳实践(每台设备都套用)</h2>
+<ol>
+<li><strong>必套 Cloudflare Access</strong>:发布任何设备前,先建 Access 应用保护(见第 2 篇)。</li>
+<li><strong>设备本地密码改强</strong>:不要默认 admin/admin 或 admin/123456。</li>
+<li><strong>最小暴露</strong>:只发布需要的服务端口,不发布无关端口。</li>
+<li><strong>HTTPS</strong>:访问统一用 <code>https://你的域名</code>。</li>
+<li><strong>限 IP(可选)</strong>:Access Policy 里可加规则"仅允许我的家庭/办公 IP 段"。</li>
+<li><strong>最小权限</strong>:SSH 用路由器登录账号 + 强密码,且仅内网可访问。</li>
+</ol>
+<hr>
+<h2 id="doc3-h16">六、故障排查速查</h2>
+<table><thead><tr><th>现象</th><th>可能原因</th><th>解决</th></tr></thead><tbody><tr><td>隧道连不上,日志 <code>Failed to get tunnel</code></td><td>token 错 / 隧道未保存</td><td>重建隧道,确认后台存在</td></tr><tr><td>进程没起来</td><td>自启脚本权限/路径错</td><td>检查 chmod +x、路径</td></tr><tr><td>能连但访问 502</td><td>Service URL 端口写错 / 服务没监听</td><td>核对内网地址:端口</td></tr><tr><td>Access 弹不出验证</td><td>没配 Policy 或还没生效</td><td>等 60 秒,确认 Policy 存在</td></tr><tr><td>手机打不开</td><td>手机连接的是与隧道同一内网的 WiFi</td><td>改用 4G/5G 流量访问测试</td></tr></tbody></table>
+<hr>
+<h2 id="doc3-h17">七、一个账号管多台设备</h2>
+<p>一个 Cloudflare 账户可建多个 Tunnel 或多个 hostname,把家里所有设备(路由器、NAS、PC、摄像头)统一管理:</p>
+<ul>
+<li>每个设备建一个 hostname:<code>router.你的域名</code>、<code>nas.你的域名</code>、<code>pc.你的域名</code>...</li>
+<li>统一加 Access,一套邮箱验证即可全部保护</li>
+<li>集中在一个后台管理,非常省事</li>
+</ul>
+</section>
+<section id="doc4" class="doc">
+<h1 id="doc4-h1">用 Cloudflare API 自动配置 Access 登录保护(代码方式)</h1>
+<blockquote><p>目的:上一篇(02)用 Web 界面给域名加 Access。这篇改用 <strong>API + 脚本</strong> 自动创建 Access 应用和策略,适合批量部署多台设备(NAS、路由器等),也可接入自动化流程。</p>
+<p>提示:文中 API_TOKEN、ACCOUNT_ID、域名均为占位,请替换为你自己的实际值。</p></blockquote>
+<hr>
+<h2 id="doc4-h2">一、准备:拿到 API 凭据</h2>
+<h3 id="doc4-h3">1. 创建 Cloudflare API Token(编辑 Zero Trust)</h3>
+<p>在 https://dash.cloudflare.com → 右上角头像 → <strong>My Profile → API Tokens → Create Token</strong></p>
+<ul>
+<li>权限建议:<strong>Access:Apps and Policies 编辑</strong>(Edit)</li>
+<li>范围:你的账户</li>
+<li>创建后复制 <code>CF_API_TOKEN</code>(只显示一次)</li>
+</ul>
+<h3 id="doc4-h4">2. 找到 account_id</h3>
+<p>在同一个 API 页面或 URL 里,<code>https://dash.cloudflare.com/&lt;account_id&gt;</code> 中间的即为 account_id。</p>
+<p>或用 API 查询:</p>
+<pre><code>curl -X GET &quot;https://api.cloudflare.com/client/v4/accounts&quot; \
+  -H &quot;Authorization: Bearer $CF_API_TOKEN&quot;</code></pre>
+<h3 id="doc4-h5">3. 用环境变量存放(避免硬编码)</h3>
+<pre><code>export CF_API_TOKEN=&quot;你的token&quot;
+export CF_ACCOUNT_ID=&quot;你的账户id&quot;
+export APP_DOMAIN=&quot;router.你的域名.com&quot;
+export EMAIL=&quot;你自己@example.com&quot;</code></pre>
+<hr>
+<h2 id="doc4-h6">二、核心 API 概念</h2>
+<table><thead><tr><th>对象</th><th>API</th><th>作用</th></tr></thead><tbody><tr><td>Access Application</td><td><code>POST /accounts/{id}/access/apps</code></td><td>定义一个受保护的域名</td></tr><tr><td>Access Policy</td><td><code>POST /accounts/{id}/access/apps/{app_id}/policies</code></td><td>定义谁能访问(规则)</td></tr><tr><td>查询</td><td><code>GET .../access/apps</code></td><td>查看已有应用</td></tr></tbody></table>
+<p>认证:请求头 <code>Authorization: Bearer &lt;token&gt;</code>、<code>Content-Type: application/json</code>。</p>
+<hr>
+<h2 id="doc4-h7">三、代码一:创建 Access 应用</h2>
+<pre><code>curl -X POST &quot;https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/access/apps&quot; \
+  -H &quot;Authorization: Bearer $CF_API_TOKEN&quot; \
+  -H &quot;Content-Type: application/json&quot; \
+  --data &#x27;{
+    &quot;name&quot;: &quot;router-access&quot;,
+    &quot;domain&quot;: &quot;&#x27;$APP_DOMAIN&#x27;&quot;,
+    &quot;type&quot;: &quot;self_hosted&quot;,
+    &quot;session_duration&quot;: &quot;24h&quot;,
+    &quot;allowed_idps&quot;: []
+  }&#x27;</code></pre>
+<p>返回 JSON 里的 <code>result.id</code> 就是 <code>APP_ID</code>,下一步要用。</p>
+<blockquote><p>若域名已有对应隧道 hostname,应用会自动关联该域名下的访问。</p></blockquote>
+<hr>
+<h2 id="doc4-h8">四、代码二:创建 Access 策略(允许你的邮箱)</h2>
+<p>用上一步得到的 <code>APP_ID</code>:</p>
+<pre><code>APP_ID=&quot;从上一步返回的 result.id&quot;
+
+curl -X POST &quot;https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/access/apps/$APP_ID/policies&quot; \
+  -H &quot;Authorization: Bearer $CF_API_TOKEN&quot; \
+  -H &quot;Content-Type: application/json&quot; \
+  --data &#x27;{
+    &quot;name&quot;: &quot;only-me&quot;,
+    &quot;decision&quot;: &quot;allow&quot;,
+    &quot;precedence&quot;: 100,
+    &quot;include&quot;: [
+      { &quot;email&quot;: { &quot;email&quot;: &quot;&#x27;$EMAIL&#x27;&quot; } }
+    ],
+    &quot;require&quot;: []
+  }&#x27;</code></pre>
+<ul>
+<li><code>decision</code>: <code>allow</code>(允许)或 <code>deny</code>(拒绝)</li>
+<li><code>include</code>:命中这些规则的人被放行。这里用 <code>email.email</code> 限定只有你自己的邮箱</li>
+<li>返回 <code>result.id</code> 即 policy id</li>
+</ul>
+<hr>
+<h2 id="doc4-h9">五、代码三:查询已配置的应用(验证)</h2>
+<pre><code>curl -X GET &quot;https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/access/apps&quot; \
+  -H &quot;Authorization: Bearer $CF_API_TOKEN&quot;</code></pre>
+<p>返回里能看到所有 Access 应用及其域名、策略,用于确认配置生效。</p>
+<hr>
+<h2 id="doc4-h10">六、完整一键脚本(创建 App + Policy)</h2>
+<p>把下面保存为 <code>setup-access.sh</code>,改顶部变量后运行 <code>sh setup-access.sh</code>:</p>
+<pre><code>#!/bin/sh
+# 自动创建 Access 应用和&quot;仅我邮箱&quot;策略
+set -e
+
+# ---- 配置区 ----
+CF_API_TOKEN=&quot;${CF_API_TOKEN:-}&quot;
+CF_ACCOUNT_ID=&quot;${CF_ACCOUNT_ID:-}&quot;
+APP_DOMAIN=&quot;${APP_DOMAIN:-router.你的域名.com}&quot;
+APP_NAME=&quot;${APP_NAME:-router-access}&quot;
+EMAIL=&quot;${EMAIL:-你@example.com}&quot;
+SESSION=&quot;${SESSION:-24h}&quot;
+# ----------------
+
+[ -z &quot;$CF_API_TOKEN&quot; ] &amp;&amp; { echo &quot;缺 CF_API_TOKEN&quot;; exit 1; }
+[ -z &quot;$CF_ACCOUNT_ID&quot; ] &amp;&amp; { echo &quot;缺 CF_ACCOUNT_ID&quot;; exit 1; }
+
+API=&quot;https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID&quot;
+
+# 1) 创建应用
+APP_JSON=$(curl -s -X POST &quot;$API/access/apps&quot; \
+  -H &quot;Authorization: Bearer $CF_API_TOKEN&quot; \
+  -H &quot;Content-Type: application/json&quot; \
+  --data &quot;{\&quot;name\&quot;:\&quot;$APP_NAME\&quot;,\&quot;domain\&quot;:\&quot;$APP_DOMAIN\&quot;,\&quot;type\&quot;:\&quot;self_hosted\&quot;,\&quot;session_duration\&quot;:\&quot;$SESSION\&quot;}&quot;)
+APP_ID=$(echo &quot;$APP_JSON&quot; | grep -o &#x27;&quot;id&quot;:&quot;[^&quot;]*&quot;&#x27; | head -1 | cut -d&#x27;&quot;&#x27; -f4)
+echo &quot;App 创建, id=$APP_ID&quot;
+
+# 2) 创建策略
+curl -s -X POST &quot;$API/access/apps/$APP_ID/policies&quot; \
+  -H &quot;Authorization: Bearer $CF_API_TOKEN&quot; \
+  -H &quot;Content-Type: application/json&quot; \
+  --data &quot;{\&quot;name\&quot;:\&quot;only-me\&quot;,\&quot;decision\&quot;:\&quot;allow\&quot;,\&quot;include\&quot;:[{\&quot;email\&quot;:{\&quot;email\&quot;:\&quot;$EMAIL\&quot;}}]}&quot;
+echo &quot;&quot;
+echo &quot;策略已创建。&quot;</code></pre>
+<hr>
+<h2 id="doc4-h11">七、批量给多台设备加保护</h2>
+<p>对多台设备(路由器、NAS、PC),循环调用:</p>
+<pre><code>for HOST in router nas pc; do
+  APP_DOMAIN=&quot;$HOST.你的域名.com&quot; sh setup-access.sh
+done</code></pre>
+<p>每台设备一个子域名,一套邮箱即可全部受控访问。</p>
+<hr>
+<h2 id="doc4-h12">八、删除/清理(可选)</h2>
+<p>删除应用(同时删其策略):</p>
+<pre><code>curl -X DELETE &quot;https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/access/apps/$APP_ID&quot; \
+  -H &quot;Authorization: Bearer $CF_API_TOKEN&quot;</code></pre>
+<hr>
+<h2 id="doc4-h13">九、常用 API 参考</h2>
+<table><thead><tr><th>用途</th><th>方法 + 路径</th></tr></thead><tbody><tr><td>创建应用</td><td>POST /accounts/{id}/access/apps</td></tr><tr><td>列应用</td><td>GET /accounts/{id}/access/apps</td></tr><tr><td>更新应用</td><td>PUT /accounts/{id}/access/apps/{app_id}</td></tr><tr><td>删除应用</td><td>DELETE /accounts/{id}/access/apps/{app_id}</td></tr><tr><td>创建策略</td><td>POST /accounts/{id}/access/apps/{app_id}/policies</td></tr><tr><td>列策略</td><td>GET /accounts/{id}/access/apps/{app_id}/policies</td></tr></tbody></table>
+<p>官方文档:https://developers.cloudflare.com/api/operations/zero-trust-access-applications-list-access-applications</p>
+</section>
+<section id="doc9" class="doc">
+<h2 id="doc9-h0">代码 / 脚本附录</h2>
+<h3 id="doc9-h1">install-cloudflared.sh · 一键安装</h3>
+<pre><code>#!/bin/sh
+# ============================================================
+#  一键在 ASUS RT-AC68U(或同类梅林固件路由器)安装 cloudflared
+#  运行:  sh install-cloudflared.sh
+#  要求:  已在 Cloudflare 后台创建 Tunnel 并拿到 token
+# ============================================================
+
+# ---- 配置区(按需修改) ----
+ARCH=arm                # 架构: arm / arm64 / amd64 (由 uname -m 决定)
+INSTALL_DIR=/jffs       # 安装目录(持久化,重启不丢)
+TOKEN_FILE=/jffs/cloudflared-token
+# 若 token 不在环境变量里,脚本会提示你手动写入 TOKEN_FILE
+# 可用:  export CF_TUNNEL_TOKEN=&quot;eyJhIjoi...&quot;
+# ============================================================
+
+# 自动判断架构(若未手动指定)
+if [ -z &quot;$ARCH_AUTO&quot; ]; then
+    M=$(uname -m)
+    case &quot;$M&quot; in
+        armv7*|arm*) ARCH=arm ;;
+        aarch64|arm64) ARCH=arm64 ;;
+        x86_64|amd64) ARCH=amd64 ;;
+        *) echo &quot;未知架构: $M,请手动设 ARCH&quot;; exit 1 ;;
+    esac
+fi
+
+URL=&quot;https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-${ARCH}&quot;
+BIN=&quot;${INSTALL_DIR}/cloudflared&quot;
+
+echo &quot;==&gt; 下载 cloudflared (${ARCH}) ...&quot;
+if ! wget -O &quot;$BIN&quot; &quot;$URL&quot;; then
+    echo &quot;下载失败,请检查网络&quot;; exit 1
+fi
+chmod +x &quot;$BIN&quot;
+echo &quot;   版本: $($BIN --version)&quot;
+
+# 处理 token
+if [ -n &quot;$CF_TUNNEL_TOKEN&quot; ]; then
+    echo &quot;$CF_TUNNEL_TOKEN&quot; &gt; &quot;$TOKEN_FILE&quot;
+    echo &quot;==&gt; token 已写入 $TOKEN_FILE&quot;
+elif [ -f &quot;$TOKEN_FILE&quot; ] &amp;&amp; [ -s &quot;$TOKEN_FILE&quot; ]; then
+    echo &quot;==&gt; 使用已有 token: $TOKEN_FILE&quot;
+else
+    echo &quot;&quot;
+    echo &quot;!! 尚未配置 token。请先:&quot;
+    echo &quot;   1. 在 https://one.dash.cloudflare.com 创建 Tunnel 拿 token&quot;
+    echo &quot;   2. 把 token 写入:  echo &#x27;你的token&#x27; &gt; $TOKEN_FILE&quot;
+    echo &quot;&quot;
+fi
+
+# 首次启动测试
+if [ -s &quot;$TOKEN_FILE&quot; ]; then
+    echo &quot;==&gt; 启动并测试连接 ...&quot;
+    killall cloudflared 2&gt;/dev/null
+    &quot;$BIN&quot; tunnel run --token &quot;$(cat &quot;$TOKEN_FILE&quot;)&quot; &gt; &quot;${INSTALL_DIR}/cloudflared.log&quot; 2&gt;&amp;1 &amp;
+    sleep 12
+    echo &quot;==&gt; 日志:&quot;
+    tail -8 &quot;${INSTALL_DIR}/cloudflared.log&quot;
+    if pidof cloudflared &gt;/dev/null 2&gt;&amp;1; then
+        echo &quot;==&gt; cloudflared 运行中 (pid=$(pidof cloudflared))&quot;
+    else
+        echo &quot;==&gt; cloudflared 未运行,请检查上面日志&quot;
+    fi
+fi
+
+echo &quot;&quot;
+echo &quot;完成。开机自启请把 services-start.sh 的内容追加到 /jffs/scripts/services-start&quot;</code></pre>
+<h3 id="doc9-h2">services-start.sh · 开机自启块</h3>
+<pre><code>#!/bin/sh
+# ============================================================
+#  ASUS RT-AC68U (梅林固件) 开机自启脚本片段 —— cloudflared 部分
+#  用法:把下面的 cloudflared 块追加到 /jffs/scripts/services-start
+#  然后:  chmod +x /jffs/scripts/services-start
+# ============================================================
+
+# ---------- cloudflared 开机自启块 ----------
+# 启动 cloudflared(Cloudflare Tunnel)远程访问
+if [ -f /jffs/cloudflared-token ] &amp;&amp; [ -s /jffs/cloudflared-token ]; then
+    if ! pidof cloudflared &gt; /dev/null 2&gt;&amp;1; then
+        TOKEN=$(cat /jffs/cloudflared-token)
+        /jffs/cloudflared tunnel run --token &quot;$TOKEN&quot; &gt;&gt; /jffs/cloudflared.log 2&gt;&amp;1 &amp;
+        echo &quot;started cloudflared pid=$!&quot; &gt;&gt; /jffs/cloudflared.log
+    fi
+fi
+
+# ---------- 说明 ----------
+# 1. 前提: /jffs/cloudflared 已存在且可执行
+# 2. 前提: /jffs/cloudflared-token 已写入 token(一行)
+# 3. 每次开机: 检查 token 存在且 cloudflared 未运行 -&gt; 启动
+# 4. 日志写 /jffs/cloudflared.log,可 tail -20 查看</code></pre>
+<h3 id="doc9-h3">cloudflared-restart.sh · 运维脚本</h3>
+<pre><code>#!/bin/sh
+# ============================================================
+#  cloudflared 常用运维脚本
+#  用法:
+#    sh cloudflared-restart.sh         # 重启 cloudflared
+#    sh cloudflared-restart.sh status  # 查看状态
+#    sh cloudflared-restart.sh start   # 启动
+#    sh cloudflared-restart.sh stop    # 停止
+# ============================================================
+
+BIN=/jffs/cloudflared
+TOKEN_FILE=/jffs/cloudflared-token
+LOG=/jffs/cloudflared.log
+
+case &quot;$1&quot; in
+    status)
+        if pidof cloudflared &gt;/dev/null 2&gt;&amp;1; then
+            echo &quot;cloudflared RUNNING (pid=$(pidof cloudflared))&quot;
+        else
+            echo &quot;cloudflared NOT RUNNING&quot;
+        fi
+        echo &quot;--- log tail ---&quot;
+        tail -10 &quot;$LOG&quot; 2&gt;/dev/null
+        ;;
+    stop)
+        killall cloudflared 2&gt;/dev/null
+        echo &quot;stopped cloudflared&quot;
+        ;;
+    start)
+        if [ ! -s &quot;$TOKEN_FILE&quot; ]; then echo &quot;token file empty: $TOKEN_FILE&quot;; exit 1; fi
+        &quot;$BIN&quot; tunnel run --token &quot;$(cat &quot;$TOKEN_FILE&quot;)&quot; &gt;&gt; &quot;$LOG&quot; 2&gt;&amp;1 &amp;
+        echo &quot;started cloudflared pid=$!&quot;
+        sleep 3
+        pidof cloudflared || echo &quot;WARN: not running after start, check $LOG&quot;
+        ;;
+    restart|*)
+        killall cloudflared 2&gt;/dev/null
+        sleep 1
+        if [ ! -s &quot;$TOKEN_FILE&quot; ]; then echo &quot;token file empty: $TOKEN_FILE&quot;; exit 1; fi
+        &quot;$BIN&quot; tunnel run --token &quot;$(cat &quot;$TOKEN_FILE&quot;)&quot; &gt;&gt; &quot;$LOG&quot; 2&gt;&amp;1 &amp;
+        echo &quot;restarted cloudflared pid=$!&quot;
+        sleep 12
+        echo &quot;--- log tail ---&quot;
+        tail -8 &quot;$LOG&quot;
+        pidof cloudflared || echo &quot;WARN: not running, check $LOG&quot;
+        ;;
+esac</code></pre>
+<h3 id="doc9-h4">setup-access.sh · API 自动加 Access</h3>
+<pre><code>#!/bin/sh
+# ============================================================
+#  用 Cloudflare API 自动给域名加 Access 登录保护
+#  自动创建: Access 应用 + &quot;仅我的邮箱&quot;策略
+#  用法:
+#     export CF_API_TOKEN=&quot;...&quot;
+#     export CF_ACCOUNT_ID=&quot;...&quot;
+#     export APP_DOMAIN=&quot;router.你的域名.com&quot;
+#     export EMAIL=&quot;你@example.com&quot;
+#     sh setup-access.sh
+# ============================================================
+set -e
+
+# ---- 配置区(也可用环境变量)----
+CF_API_TOKEN=&quot;${CF_API_TOKEN:-}&quot;
+CF_ACCOUNT_ID=&quot;${CF_ACCOUNT_ID:-}&quot;
+APP_DOMAIN=&quot;${APP_DOMAIN:-router.你的域名.com}&quot;
+APP_NAME=&quot;${APP_NAME:-router-access}&quot;
+EMAIL=&quot;${EMAIL:-你@example.com}&quot;
+SESSION=&quot;${SESSION:-24h}&quot;
+# ----------------
+
+[ -z &quot;$CF_API_TOKEN&quot; ] &amp;&amp; { echo &quot;缺 CF_API_TOKEN&quot;; exit 1; }
+[ -z &quot;$CF_ACCOUNT_ID&quot; ] &amp;&amp; { echo &quot;缺 CF_ACCOUNT_ID&quot;; exit 1; }
+
+API=&quot;https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID&quot;
+
+# 1) 创建 Access 应用
+echo &quot;==&gt; 创建 Access 应用: $APP_DOMAIN&quot;
+APP_JSON=$(curl -s -X POST &quot;$API/access/apps&quot; \
+  -H &quot;Authorization: Bearer $CF_API_TOKEN&quot; \
+  -H &quot;Content-Type: application/json&quot; \
+  --data &quot;{\&quot;name\&quot;:\&quot;$APP_NAME\&quot;,\&quot;domain\&quot;:\&quot;$APP_DOMAIN\&quot;,\&quot;type\&quot;:\&quot;self_hosted\&quot;,\&quot;session_duration\&quot;:\&quot;$SESSION\&quot;}&quot;)
+APP_ID=$(echo &quot;$APP_JSON&quot; | grep -o &#x27;&quot;id&quot;:&quot;[^&quot;]*&quot;&#x27; | head -1 | cut -d&#x27;&quot;&#x27; -f4)
+echo &quot;   应用 id=$APP_ID&quot;
+[ -z &quot;$APP_ID&quot; ] &amp;&amp; { echo &quot;   创建应用失败,返回: $APP_JSON&quot;; exit 1; }
+
+# 2) 创建 Access 策略(仅我的邮箱)
+echo &quot;==&gt; 创建策略: 仅 $EMAIL 可访问&quot;
+curl -s -X POST &quot;$API/access/apps/$APP_ID/policies&quot; \
+  -H &quot;Authorization: Bearer $CF_API_TOKEN&quot; \
+  -H &quot;Content-Type: application/json&quot; \
+  --data &quot;{\&quot;name\&quot;:\&quot;only-me\&quot;,\&quot;decision\&quot;:\&quot;allow\&quot;,\&quot;include\&quot;:[{\&quot;email\&quot;:{\&quot;email\&quot;:\&quot;$EMAIL\&quot;}}]}&quot;
+echo &quot;&quot;
+echo &quot;==&gt; 完成。访问 $APP_DOMAIN 会先要求邮箱验证。&quot;
+</code></pre>
+</section>
+</main>
+</div>
+</body>
+</html>
