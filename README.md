@@ -168,7 +168,7 @@ RT-AC68U 需先开启 SSH:
 
 SSH 登录(用系统自带 OpenSSH 客户端):
 ```bash
-ssh 你的账号@192.168.1.1
+ssh 你的账号@192.168.X.1
 # 回车后输入路由器登录密码
 ```
 
@@ -265,7 +265,7 @@ chmod +x /jffs/scripts/services-start
    - **Subdomain**:`router`
    - **Domain**:`你的域名`(如 example.com)
    - **Type**:`HTTP`
-   - **URL**:`192.168.1.1:80`(设备的内网地址和端口)
+   - **URL**:`192.168.X.1:80`(设备的内网地址和端口)
 3. **Save**
 
 完成后,从外网访问 `https://router.你的域名.com` 即可进入设备后台。
@@ -387,7 +387,7 @@ Access 的邮箱一次性验证码叫 **One-time PIN (OTP)**:
 Cloudflare 边缘节点
    │  Cloudflare Access 验证(邮箱 OTP)
    ▼ 验证通过
-路由器后台(192.168.1.1:80)
+路由器后台(192.168.X.1:80)
 ```
 未通过验证的人:停在验证页,无法进入。
 
